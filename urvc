@@ -63,6 +63,9 @@ main() {
             check_dependencies
             uv run --extra "$URVC_ACCELERATOR" ./src/ultimate_rvc/cli/main.py "$@"
             ;;
+        info)
+            detect_accelerator
+            ;;
         docs)
             check_dependencies
             if [ "$#" -ne 2 ]; then
@@ -151,6 +154,79 @@ install_cuda_128() {
     echo "CUDA 12.8 has been installed successfully"
 }
 
+detect_accelerator() {
+    arch=$(uname -m)
+    echo "OS:    $OS ($arch)"
+
+    cuda=no
+    cuda_devices=""
+    rocm=no
+    rocm_devices=""
+    mps=no
+
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        if nvidia_out=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null) \
+           && [ -n "$nvidia_out" ]; then
+            cuda=yes
+            cuda_devices=$(echo "$nvidia_out" | paste -sd ',' -)
+        fi
+    fi
+
+    if [ "$OS" = "Linux" ]; then
+        if command -v rocm-smi >/dev/null 2>&1 && rocm-smi --showid >/dev/null 2>&1; then
+            rocm=yes
+            rocm_devices=$(rocm-smi --showproductname 2>/dev/null \
+                | awk -F: '/Card series/ {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}' \
+                | paste -sd ',' -)
+        elif [ -e /dev/kfd ]; then
+            rocm=yes
+        fi
+    fi
+
+    if [ "$OS" = "Darwin" ] && [ "$arch" = "arm64" ]; then
+        mps=yes
+    fi
+
+    fmt() {
+        if [ "$1" = yes ]; then
+            if [ -n "$2" ]; then echo "available  [$2]"; else echo "available"; fi
+        else
+            echo "not available"
+        fi
+    }
+
+    echo ""
+    echo "Accelerators:"
+    echo "  CPU    available"
+    echo "  CUDA   $(fmt "$cuda" "$cuda_devices")"
+    echo "  ROCm   $(fmt "$rocm" "$rocm_devices")"
+    echo "  MPS    $(fmt "$mps" "")"
+
+    if [ "$cuda" = yes ]; then
+        recommended=cuda
+    elif [ "$rocm" = yes ]; then
+        recommended=rocm
+    else
+        recommended=cpu
+    fi
+
+    echo ""
+    echo "Recommended URVC_ACCELERATOR: $recommended"
+    echo ""
+    echo "To use it for install:"
+    echo "  URVC_ACCELERATOR=$recommended ./urvc install"
+
+    if [ "$mps" = yes ] && [ "$recommended" = cpu ]; then
+        echo ""
+        echo "Note: Apple Silicon detected. Install with URVC_ACCELERATOR=cpu,"
+        echo "then run inference with '--device auto' to use MPS at runtime."
+    fi
+    if [ "$OS" = "Darwin" ] && [ "$recommended" != cpu ]; then
+        echo ""
+        echo "Note: CUDA/ROCm are not supported on macOS — use cpu."
+    fi
+}
+
 check_dependencies() {
     if [ ! -d "$UV_PATH" ]; then
         echo "Dependencies not found. Please run './urvc install' first."
@@ -177,6 +253,8 @@ show_help() {
 	  update       Git-pull the latest version of this fork.
 	  uninstall    Remove dependencies and generated data.
 	  cli          Run the urvc CLI (see './urvc cli --help' for subcommands).
+	  info         Detect accelerators on this machine and recommend
+	                 a URVC_ACCELERATOR value. Works before install.
 	  docs         Generate Typer docs.   Args: <module> <output_dir>
 	  uv           Pass through to the uv command.
 	  help         Show this message.

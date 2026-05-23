@@ -17,6 +17,7 @@ install:   Install dependencies and set up environment.
 update:    Git-pull the latest version of this fork.
 uninstall: Remove dependencies and generated data.
 cli:       Run the urvc CLI (see 'urvc cli --help' for subcommands).
+info:      Detect accelerators on this machine and recommend a URVC_ACCELERATOR value (works before install).
 docs:      Generate Typer docs.
 uv:        Pass through to uv.
 help:      Print help.
@@ -80,6 +81,9 @@ function Main {
             Assert-Dependencies
             uv run --extra $urvcAccelerator ./src/ultimate_rvc/cli/main.py @Arguments
         }
+        "info" {
+            Detect-Accelerator
+        }
         "docs" {
             Assert-Dependencies
             if ($Arguments.Length -lt 2) {
@@ -102,6 +106,42 @@ function Main {
             Exit 1
         }
     }
+}
+
+function Detect-Accelerator {
+    $arch = $env:PROCESSOR_ARCHITECTURE
+    Write-Host "OS:    Windows ($arch)"
+
+    $cuda = $false
+    $cudaDevices = @()
+    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+        try {
+            $names = & nvidia-smi --query-gpu=name --format=csv,noheader 2>$null
+            if ($LASTEXITCODE -eq 0 -and $names) {
+                $cuda = $true
+                $cudaDevices = $names | Where-Object { $_.Trim() -ne "" }
+            }
+        } catch { }
+    }
+
+    Write-Host ""
+    Write-Host "Accelerators:"
+    Write-Host "  CPU    available"
+    if ($cuda) {
+        Write-Host "  CUDA   available  [$($cudaDevices -join ', ')]"
+    } else {
+        Write-Host "  CUDA   not available"
+    }
+    Write-Host "  ROCm   not available  (not supported on Windows)"
+
+    if ($cuda) { $recommended = "cuda" } else { $recommended = "cpu" }
+
+    Write-Host ""
+    Write-Host "Recommended URVC_ACCELERATOR: $recommended"
+    Write-Host ""
+    Write-Host "To use it for install:"
+    Write-Host "  `$env:URVC_ACCELERATOR = `"$recommended`""
+    Write-Host "  ./urvc.ps1 install"
 }
 
 function Assert-Dependencies {
