@@ -2,6 +2,9 @@ FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-exo", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
+# Override with --build-arg URVC_ACCELERATOR=cpu for CPU-only deployments.
+ARG URVC_ACCELERATOR=cuda
+ENV URVC_ACCELERATOR=${URVC_ACCELERATOR}
 
 WORKDIR /app
 COPY . .
@@ -12,6 +15,5 @@ RUN --mount=type=tmpfs,target=/var/lib/apt/lists \
 	apt-get install -y --no-install-recommends sudo wget curl && \
 	./urvc docker-bootstrap
 
-EXPOSE 7860
-
-CMD ["./urvc", "run", "--listen", "--listen-host", "0.0.0.0"]
+ENTRYPOINT ["./urvc", "cli"]
+CMD ["--help"]

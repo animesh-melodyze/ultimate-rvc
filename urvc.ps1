@@ -1,55 +1,31 @@
-# Licensed under the MIT license
-# <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
-# option. This file may not be copied, modified, or distributed
-# except according to those terms.
+# Licensed under the MIT license.
+#
+# Launcher for the karaoke-vocal-timbre fork of Ultimate RVC (Windows).
 
 <#
 .SYNOPSIS
 
-The launcher for Ultimate RVC.
+CLI launcher for Ultimate RVC (karaoke vocal-timbre fork).
 
 .DESCRIPTION
 
-This script is the entry point for Ultimate RVC. It is responsible for installing dependencies,
-updating the application, running the application, and providing a CLI.
+Installs dependencies, updates the fork, and exposes the urvc CLI.
+This fork is CLI-only — there is no web UI.
 
 .PARAMETER Command
-The command to run. The available commands are:
-
 install:   Install dependencies and set up environment.
-update:    Update Ultimate RVC to the latest version.
-uninstall: Uninstall dependencies and user generated data.
-run:       Start Ultimate RVC.
-dev:       Start Ultimate RVC in development mode.
-cli:       Start Ultimate RVC in CLI mode.
-docs:      Generate documentation using Typer.
-uv:        Run an arbitrary command using uv.
+update:    Git-pull the latest version of this fork.
+uninstall: Remove dependencies and generated data.
+cli:       Run the urvc CLI (see 'urvc cli --help' for subcommands).
+docs:      Generate Typer docs.
+uv:        Pass through to uv.
 help:      Print help.
 
 .PARAMETER Arguments
-The arguments and options to run the command with. 
-These are only used for the 'run', 'cli', 'docs' and 'uv' commands.
+Forwarded to the underlying command.
 
-run:
-    options:
-        --help: Print help.
-        [more information available, use --help to see all]
-cli:
-    options:
-        --help: Print help.
-        [more information available, use --help to see all]
-docs:
-    arguments:
-        0: The module to generate documentation for.
-        1: The output directory for the documentation.
-uv:
-    arguments:
-        0: The command to run.
-        [more information available, use --help to see all]
-    options:
-        --help: Print help.
-        [more information available, use --help to see all]
-
+.NOTES
+Set $env:URVC_ACCELERATOR to cpu, cuda, or rocm to override the default (cuda).
 #>
 
 param (
@@ -72,7 +48,6 @@ $env:VIRTUAL_ENV = $venvPath
 $env:UV_PROJECT_ENVIRONMENT = $venvPath
 $env:UV_TOOL_DIR = "$uvPath\tools"
 $env:UV_TOOL_BIN_DIR = "$uvPath\tools\bin"
-$env:GRADIO_NODE_PATH = "$venvPath\Lib\site-packages\nodejs_wheel\node.exe"
 $env:PATH = "$uvPath;$env:PATH"
 
 function Main {
@@ -84,6 +59,7 @@ function Main {
     switch ($Command) {
         "install" {
             Invoke-RestMethod https://astral.sh/uv/0.9.11/install.ps1 | Invoke-Expression
+            uv sync --no-editable --extra $urvcAccelerator
             uv run --extra $urvcAccelerator ./src/ultimate_rvc/core/main.py
         }
         "update" {
@@ -99,15 +75,6 @@ function Main {
             } else {
                 Write-Host "Uninstallation canceled."
             }
-
-        }
-        "run" {
-            Assert-Dependencies
-            uv run --extra $urvcAccelerator ./src/ultimate_rvc/web/main.py @Arguments
-        }
-        "dev" {
-            Assert-Dependencies
-            uv run --extra $urvcAccelerator gradio ./src/ultimate_rvc/web/main.py --demo-name app
         }
         "cli" {
             Assert-Dependencies
@@ -138,9 +105,8 @@ function Main {
 }
 
 function Assert-Dependencies {
-
     if (-Not (Test-Path -Path $uvPath)) {
-        Write-Host "Dependencies not found. Please run './urvc install' first."
+        Write-Host "Dependencies not found. Please run './urvc.ps1 install' first."
         Exit 1
     }
 }

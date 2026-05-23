@@ -17,14 +17,16 @@ import typer
 from rich import print as rprint
 from rich.panel import Panel
 
+import json as _json
+
 from ultimate_rvc.cli.common import (
+    cli_state,
     complete_audio_ext,
     complete_embedder_model,
     complete_f0_method,
     format_duration,
+    to_hd_mp3,
 )
-from ultimate_rvc.cli.generate.song_cover import app as song_cover_app
-from ultimate_rvc.cli.generate.speech import app as speech_app
 from ultimate_rvc.cli.typing_extra import PanelName
 from ultimate_rvc.core.generate.common import convert as _convert
 from ultimate_rvc.core.generate.common import wavify as _wavify
@@ -36,10 +38,6 @@ app = typer.Typer(
     help="Generate audio using RVC",
     rich_markup_mode="markdown",
 )
-
-
-app.add_typer(song_cover_app)
-app.add_typer(speech_app)
 
 
 @app.command(no_args_is_help=True)
@@ -313,10 +311,18 @@ def convert_voice(
         ),
     ] = 0,
 ) -> None:
-    """Convert a voice track using RVC."""
+    """
+    Convert a voice track using RVC.
+
+    The RVC output (WAV) is re-encoded to HD MP3 (256 kbps, 48 kHz,
+    stereo) and the MP3 path is returned. The intermediate WAV is left
+    in `directory` for caching purposes.
+    """
+    json_mode = bool(cli_state.get("json_output", False))
     start_time = time.perf_counter()
 
-    rprint()
+    if not json_mode:
+        rprint()
 
     converted_voice_path = _convert(
         audio_track=voice_track,
@@ -340,7 +346,25 @@ def convert_voice(
         sid=sid,
         content_type=RVCContentType.VOICE,
     )
-    rprint("[+] Voice track succesfully converted!")
-    rprint()
-    rprint("Elapsed time:", format_duration(time.perf_counter() - start_time))
-    rprint(Panel(f"[green]{converted_voice_path}", title="Converted Voice Path"))
+    mp3_path = to_hd_mp3(converted_voice_path)
+    elapsed = time.perf_counter() - start_time
+
+    if json_mode:
+        typer.echo(
+            _json.dumps(
+                {
+                    "status": "ok",
+                    "input_path": str(voice_track),
+                    "model": model_name,
+                    "wav_path": str(converted_voice_path),
+                    "output_path": str(mp3_path),
+                    "elapsed_seconds": round(elapsed, 3),
+                    "device": cli_state.get("device", "auto"),
+                },
+            ),
+        )
+    else:
+        rprint("[+] Voice track succesfully converted!")
+        rprint()
+        rprint("Elapsed time:", format_duration(elapsed))
+        rprint(Panel(f"[green]{mp3_path}", title="HD MP3 Output"))

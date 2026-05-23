@@ -1,5 +1,9 @@
 """Common utilities for the CLI."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ultimate_rvc.typing_extra import (
     AudioExt,
     AudioNormalizationMode,
@@ -14,6 +18,44 @@ from ultimate_rvc.typing_extra import (
     TrainingSampleRate,
     Vocoder,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+# Shared CLI state populated by the root Typer callback in cli/main.py and
+# read by individual subcommands. Avoids passing Typer Context through every
+# call site.
+cli_state: dict[str, object] = {"device": "auto", "json_output": False}
+
+HD_MP3_BITRATE = "256k"
+HD_MP3_SAMPLE_RATE = 48_000
+HD_MP3_CHANNELS = 2
+
+
+def to_hd_mp3(wav_path: Path) -> Path:
+    """
+    Re-encode a WAV file to HD MP3 (256 kbps, 48 kHz, stereo).
+
+    Writes the MP3 next to the source WAV with the same stem.
+
+    Parameters
+    ----------
+    wav_path : Path
+        Path to the source WAV file.
+
+    Returns
+    -------
+    Path
+        Path to the resulting MP3 file.
+
+    """
+    from pydub import AudioSegment
+
+    audio = AudioSegment.from_wav(str(wav_path))
+    audio = audio.set_frame_rate(HD_MP3_SAMPLE_RATE).set_channels(HD_MP3_CHANNELS)
+    mp3_path = wav_path.with_suffix(".mp3")
+    audio.export(str(mp3_path), format="mp3", bitrate=HD_MP3_BITRATE)
+    return mp3_path
 
 
 def format_duration(seconds: float) -> str:

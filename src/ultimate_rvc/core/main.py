@@ -15,7 +15,6 @@ from rich import print as rprint
 
 from ultimate_rvc.common import VOICE_MODELS_DIR
 from ultimate_rvc.core.common import FLAG_FILE
-from ultimate_rvc.core.generate.song_cover import initialize_audio_separator
 from ultimate_rvc.core.manage.models import download_voice_model
 from ultimate_rvc.rvc.lib.tools.prerequisites_download import (
     prequisites_download_pipeline,
@@ -59,7 +58,6 @@ def initialize() -> None:
         # binaries are downloaded as part of initialization.
         static_sox.add_paths(weak=True)
         download_sample_models()
-        initialize_audio_separator()
         FLAG_FILE.touch()
 
 

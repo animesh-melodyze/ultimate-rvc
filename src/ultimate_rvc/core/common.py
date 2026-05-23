@@ -41,8 +41,6 @@ if TYPE_CHECKING:
 
     import requests
 
-    import gradio as gr
-
     from ultimate_rvc.typing_extra import Json, StrPath
 else:
     requests = lazy.load("requests")
@@ -58,11 +56,9 @@ TRAINING_AUDIO_DIR = AUDIO_DIR / "training"
 def display_progress(
     message: str,
     percentage: float | None = None,
-    progress_bar: gr.Progress | None = None,
 ) -> None:
     """
-    Display progress message and percentage in console and potentially
-    also Gradio progress bar.
+    Display progress message and percentage in console.
 
     Parameters
     ----------
@@ -70,13 +66,10 @@ def display_progress(
         Message to display.
     percentage : float, optional
         Percentage to display.
-    progress_bar : gr.Progress, optional
-        The Gradio progress bar to update.
 
     """
+    del percentage
     rprint(message)
-    if progress_bar is not None:
-        progress_bar(percentage, desc=message)
 
 
 def remove_suffix_after(text: str, occurrence: str) -> str:

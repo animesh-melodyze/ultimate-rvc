@@ -1,9 +1,14 @@
 services:
   ultimate-rvc:
-    restart: unless-stopped
+    # CLI-only image. Example invocation:
+    #   docker compose run --rm ultimate-rvc generate convert-voice \
+    #     /app/audio/input.wav /app/audio "<voice-model-name>"
+    # For CPU-only hosts: URVC_ACCELERATOR=cpu docker compose build
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      args:
+        URVC_ACCELERATOR: ${URVC_ACCELERATOR:-cuda}
     image: ultimate-rvc-app:latest
     container_name: ultimate-rvc
     volumes:
@@ -11,8 +16,6 @@ services:
       - ../audio:/app/audio
       - ../logs:/app/logs
       - ../temp:/app/temp
-    ports:
-      - "7860:7860"
     deploy:
       resources:
         limits:
@@ -21,7 +24,9 @@ services:
         reservations:
           cpus: '2.0'
           memory: 4G
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+          # Uncomment when running with URVC_ACCELERATOR=cuda and an NVIDIA
+          # driver is available on the host.
+          # devices:
+          #   - driver: nvidia
+          #     count: 1
+          #     capabilities: [gpu]
