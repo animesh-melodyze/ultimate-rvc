@@ -30,10 +30,6 @@ else:
 def download_sample_models() -> None:
     """Download sample RVC models."""
     named_model_links = [
-        # ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Ariana_Grande__RVC_v1.zip", "Ariana Grande"),
-        # ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/EdSheeran_RVC.zip", "Ed Sheeran"),
-        # ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Taylor_Swift_RVC.zip", "Taylor Swift"),
-        # ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Lana_Del_Rey_RVC.zip", "Lana Del Rey"),
         ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/LanaDelRayRVC_V2.zip", "Lana Del Rey"),
         ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/TaylorSwiftRVC_V2.zip", "Taylor Swift"),
         ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/ArianaGrandeRVC_V2.zip", "Ariana Grande"),
