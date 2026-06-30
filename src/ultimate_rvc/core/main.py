@@ -30,16 +30,8 @@ else:
 def download_sample_models() -> None:
     """Download sample RVC models."""
     named_model_links = [
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/LanaDelRayRVC_V2.zip", "Lana Del Rey"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/TaylorSwiftRVC_V2.zip", "Taylor Swift"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/ArianaGrandeRVC_V2.zip", "Ariana Grande"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/EdSheeranV3.zip", "Ed Sheeran"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Adele_RVC.zip", "Adele"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Frank_Sinatra_RVC.zip", "Frank Sinatra"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Sid_Sriram_RVC.zip", "Sid Sriram"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Arijit_Singh_RVC.zip", "Arijit Singh"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Shreya_Ghosal_RVC.zip", "Shreya Ghoshal"),
-        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Armaan_Malik_RVC.zip", "Armaan Malik"),
+        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Subham_RVC_V1.zip", "Subham"),
+        ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Kamalika_RVC_V1.zip", "Kamalika"),
     ]
     for model_url, model_name in named_model_links:
         if not Path(VOICE_MODELS_DIR / model_name).is_dir():
