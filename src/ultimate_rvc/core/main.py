@@ -32,6 +32,7 @@ def download_sample_models() -> None:
     named_model_links = [
         ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Subham_RVC_V1.zip", "Subham"),
         ("https://melodyze-public-bucket.s3.ap-south-1.amazonaws.com/rvc_models/Kamalika_RVC_V1.zip", "Kamalika"),
+        ("https://huggingface.co/enescakircali/Arijit-Singh/resolve/main/arijit-singh.zip", "Arijit"),
     ]
     for model_url, model_name in named_model_links:
         if not Path(VOICE_MODELS_DIR / model_name).is_dir():
